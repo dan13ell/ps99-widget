@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.0.1.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
       - name: Compile App and Widget Extension
         run: |
@@ -36,7 +36,7 @@ jobs:
           zip -r PS99Widget.ipa Payload
 
       - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: PS99Widget-IPA
           path: build/PS99Widget.ipa
