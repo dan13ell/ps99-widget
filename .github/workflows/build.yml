@@ -1,0 +1,42 @@
+name: Build App and Widget IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.0.1.app/Contents/Developer
+
+      - name: Compile App and Widget Extension
+        run: |
+          mkdir -p build/Payload/PS99App.app/PlugIns/PS99Widget.appex
+          
+          # Kompilace hlavní aplikace
+          swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
+                 -target arm64-apple-ios14.0 \
+                 -emit-executable \
+                 -o build/Payload/PS99App.app/PS99App \
+                 ios/App/ContentView.swift
+                 
+          # Kompilace Widgetu
+          swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
+                 -target arm64-apple-ios14.0 \
+                 -emit-executable \
+                 -o build/Payload/PS99App.app/PlugIns/PS99Widget.appex/PS99Widget \
+                 ios/PS99Widget/PS99Widget.swift
+
+          cd build
+          zip -r PS99Widget.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: PS99Widget-IPA
+          path: build/PS99Widget.ipa
