@@ -16,17 +16,17 @@ jobs:
           # 1. Vytvoření pracovní složky
           mkdir -p build/Payload
           
-          # 2. Kompilace aplikace s vlajkou -parse-as-library
+          # 2. Kompilace aplikace (target iOS 16.0)
           swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
-                 -target arm64-apple-ios14.0 \
+                 -target arm64-apple-ios16.0 \
                  -parse-as-library \
                  -emit-executable \
                  -o build/PS99App \
                  ios/App/ContentView.swift
 
-          # 3. Kompilace Widgetu s vlajkou -parse-as-library
+          # 3. Kompilace Widgetu (target iOS 16.0)
           swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
-                 -target arm64-apple-ios14.0 \
+                 -target arm64-apple-ios16.0 \
                  -parse-as-library \
                  -emit-executable \
                  -o build/PS99Widget \
@@ -37,7 +37,7 @@ jobs:
           mv build/PS99App build/Payload/PS99App.app/
           mv build/PS99Widget build/Payload/PS99App.app/PlugIns/PS99Widget.appex/
 
-          # 5. Vytvoření minimálního Info.plist pro iOS
+          # 5. Vytvoření Info.plist souborů (s verze iOS 16.0)
           cat << 'EOF' > build/Payload/PS99App.app/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -54,7 +54,7 @@ jobs:
               <key>CFBundleVersion</key>
               <string>1</string>
               <key>MinimumOSVersion</key>
-              <string>14.0</string>
+              <string>16.0</string>
           </dict>
           </plist>
           EOF
@@ -72,6 +72,8 @@ jobs:
               <string>PS99Widget</string>
               <key>CFBundleShortVersionString</key>
               <string>1.0</string>
+              <key>MinimumOSVersion</key>
+              <string>16.0</string>
               <key>NSExtension</key>
               <dict>
                   <key>NSExtensionPointIdentifier</key>
