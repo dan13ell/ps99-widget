@@ -11,24 +11,77 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Compile App and Widget Extension
+      - name: Create iOS Xcode Project & Build
         run: |
-          mkdir -p build/Payload/PS99App.app/PlugIns/PS99Widget.appex
+          # 1. Vytvoření pracovní složky
+          mkdir -p build/Payload
           
-          # Kompilace hlavní aplikace
+          # 2. Kompilace aplikace s vlajkou -parse-as-library
           swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
                  -target arm64-apple-ios14.0 \
+                 -parse-as-library \
                  -emit-executable \
-                 -o build/Payload/PS99App.app/PS99App \
+                 -o build/PS99App \
                  ios/App/ContentView.swift
-                 
-          # Kompilace Widgetu
+
+          # 3. Kompilace Widgetu s vlajkou -parse-as-library
           swiftc -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
                  -target arm64-apple-ios14.0 \
+                 -parse-as-library \
                  -emit-executable \
-                 -o build/Payload/PS99App.app/PlugIns/PS99Widget.appex/PS99Widget \
+                 -o build/PS99Widget \
                  ios/PS99Widget/PS99Widget.swift
 
+          # 4. Sestavení struktury .app balíčku
+          mkdir -p build/Payload/PS99App.app/PlugIns/PS99Widget.appex
+          mv build/PS99App build/Payload/PS99App.app/
+          mv build/PS99Widget build/Payload/PS99App.app/PlugIns/PS99Widget.appex/
+
+          # 5. Vytvoření minimálního Info.plist pro iOS
+          cat << 'EOF' > build/Payload/PS99App.app/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>PS99App</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.ps99.widgetapp</string>
+              <key>CFBundleName</key>
+              <string>PS99App</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>MinimumOSVersion</key>
+              <string>14.0</string>
+          </dict>
+          </plist>
+          EOF
+
+          cat << 'EOF' > build/Payload/PS99App.app/PlugIns/PS99Widget.appex/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>PS99Widget</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.ps99.widgetapp.widget</string>
+              <key>CFBundleName</key>
+              <string>PS99Widget</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>NSExtension</key>
+              <dict>
+                  <key>NSExtensionPointIdentifier</key>
+                  <string>com.apple.widgetkit-extension</string>
+              </dict>
+          </dict>
+          </plist>
+          EOF
+
+          # 6. Zabalené do IPA
           cd build
           zip -r PS99Widget.ipa Payload
 
